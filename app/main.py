@@ -11,5 +11,3 @@ if __name__ == "__main__":
         duplicated_tracks_list = utils.find_duplicates(tracks, access_token)
         duplicates[playlist_name] = duplicated_tracks_list
         utils.export_to_json_file(duplicates)
-
-
