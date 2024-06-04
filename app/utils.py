@@ -34,7 +34,7 @@ def get_playlist_tracks(playlist_id: str, bearer_access_token: str) -> list:
     return api_response.json().get("tracks").get("items")
 
 
-def find_duplicates(tracks: list, bearer_access_token: str) -> list[dict]:
+def find_duplicates(tracks: list[dict], bearer_access_token: str) -> list[dict]:
     unique_tracks = list()
     duplicated_tracks = list()
     user_ids = dict()
@@ -57,6 +57,7 @@ def find_duplicates(tracks: list, bearer_access_token: str) -> list[dict]:
                 {
                     "artist_name": track.get("track").get("artists")[0].get("name"),
                     "track_name": track.get("track").get("name"),
+                    "track_id": track_id,
                     "added_by_name": user_ids.get(user_id),
                 }
             )
@@ -83,3 +84,23 @@ def _get_user_name(user_id: str, bearer_access_token: str) -> str:
 
 def _get_datetime(datetime_as_str: str) -> datetime:
     return datetime.strptime(datetime_as_str, "%Y-%m-%dT%H:%M:%SZ")
+
+def delete_duplicates_from_playlist(tracks: list[dict], playlist_id: str, bearer_access_token: str) -> None:
+    if not tracks:
+        return
+
+    api_response = requests.delete(
+        url=f"{cfg.base_url}/playlists/{playlist_id}/tracks",
+        headers={"Authorization": f"Bearer {bearer_access_token}"},
+        data= {
+            "tracks": [
+                {
+                    "uri": f"spotify:track:{track.get('track_id')}"
+                }
+                for track in tracks
+            ]
+        }
+    )
+
+    if api_response.status_code != 200:
+        raise requests.ConnectionError
